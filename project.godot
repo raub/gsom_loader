@@ -11,5 +11,23 @@ config_version=5
 [application]
 
 config/name="gsom_loader"
+config/description="A threaded async loader for Godot resources.
+Loads a resource in another thread and then calls your callback(s).
+"
+config/version="0.0.1"
+run/main_scene="res://example.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
+
+[autoload]
+
+GsomLoader="*res://addons/gsom_loader/./gsom_loader_autoload.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gsom_loader/plugin.cfg")

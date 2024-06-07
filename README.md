@@ -1,9 +1,7 @@
 # gsom_loader
 
-A Half-Life 1 inspired loader for Godot projects.
-There is a singleton and optional UI (that doesn't autoload).
-It's also possible to craft your own UI instead.
-Future versions may provide additional UI implementations as well.
+A threaded async loader for Godot resources.
+Loads a resource in another thread and then calls your callback(s).
 
 
 ## GsomLoader
