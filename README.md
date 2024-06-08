@@ -33,7 +33,7 @@ It holds all the common loader logic and is not tied to any specific UI.
 
 **Properties**
 
-● float interval [default: 0.1] [property: setter, getter]
+* `float interval` [default: 0.1] [property: setter, getter]
 
 Status check interval. This is how often the loading progress is updated for each resource.
 
