@@ -24,15 +24,15 @@ func _ready() -> void:
 	add_child(_timer)
 
 
-## Loads a new resource outside of main thread. The loaded resource is passed to `cb`.
+## Loads a new resource outside of main thread. The loaded resource is passed to [code]cb[/code].
 ## If the same resource is requested many times, ALL callbacks will be called.
-## 
-## * `func cb(res: Resource) -> void` - called when and if the resource is loaded.
-## 
-## * `func stat(progress: float, status: ResourceLoader.ThreadLoadStatus) -> void` -
-## optional callback for progress tracking. When complete, `progress == 1.0`, when
-## errored `progress == -1.0`. During loading it goes from `0.0` to `1.0`.
-##
+## [br]
+## * [code]func cb(res: Resource) -> void[/code] - called when and if the resource is loaded.
+## [br]
+## * [code]func stat(progress: float, status: ResourceLoader.ThreadLoadStatus) -> void[/code] -
+## optional callback for progress tracking. When complete, [code]progress == 1.0[/code], when
+## errored [code]progress == -1.0[/code]. During loading it goes from [code]0.0[/code] to [code]1.0[/code].
+## [br]
 ## Note: Godot cache is WEAK ref, so if you don't store/use the resource it gets uncached!
 func load_async(path: String, cb: Callable, stat: Callable = _nop_stat) -> void:
 	var status: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(path)
@@ -46,14 +46,14 @@ func load_async(path: String, cb: Callable, stat: Callable = _nop_stat) -> void:
 	_load_internal(path, cb, stat, ResourceLoader.CACHE_MODE_REUSE)
 
 
-## Reloads the resource disregarding cache if any. The loaded resource is passed to `cb`.
+## Reloads the resource disregarding cache if any. The loaded resource is passed to [code]cb[/code].
 ## If the same resource is requested many times, EACH request will reload again separately.
-## 
-## * `func cb(res: Resource) -> void` - called when and if the resource is loaded.
-## 
-## * `func stat(progress: float, status: ResourceLoader.ThreadLoadStatus) -> void` -
-## optional callback for progress tracking. When complete, `progress == 1.0`, when
-## errored `progress == -1.0`. During loading it goes from `0.0` to `1.0`.
+## [br]
+## * [code]func cb(res: Resource) -> void[/code] - called when and if the resource is loaded.
+## [br]
+## * [code]func stat(progress: float, status: ResourceLoader.ThreadLoadStatus) -> void[/code] -
+## optional callback for progress tracking. When complete, [code]progress == 1.0[/code], when
+## errored [code]progress == -1.0[/code]. During loading it goes from [code]0.0[/code] to [code]1.0[/code].
 func reload_async(path: String, cb: Callable, stat: Callable = _nop_stat) -> void:
 	# If not in queue, just load it
 	if !_load_queue.has(path):
