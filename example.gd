@@ -1,7 +1,7 @@
 extends Control
 
-## This is to demonstrate the cache - if the loaded resource is never used,
-## Godot won't keep it in cache (which only weak-refs the resources)
+# This is to demonstrate the cache - if the loaded resource is never used,
+# Godot won't keep it in cache (which only weak-refs the resources)
 var _strong_ref: Resource = null
 
 @onready var _button_load: Button = $VBoxContainer/HBoxContainer/ButtonLoad
