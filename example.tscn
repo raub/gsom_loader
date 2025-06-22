@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bw8uoq0xcv8k8"]
 
-[ext_resource type="Script" path="res://example.gd" id="1_kl86n"]
+[ext_resource type="Script" uid="uid://dcnw2do0fhfrt" path="res://example.gd" id="1_kl86n"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -28,14 +28,54 @@ theme_override_constants/separation = 20
 layout_mode = 2
 theme_override_constants/separation = 20
 
+[node name="ButtonClear" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clear the log."
+text = "clear"
+
+[node name="Spacer1" type="Control" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
 [node name="ButtonLoad" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Load a single resource in background."
 text = "load"
+
+[node name="ButtonErr" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Try to achieve \"ERROR: Another resource is loaded from path ...\".
+This happens not always.
+Sometimes it crashes :D"
+text = "err"
 
 [node name="ButtonReload" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Load a single resource in background disregarding any cache."
 text = "reload"
 
-[node name="LabelLog" type="Label" parent="VBoxContainer"]
+[node name="Spacer2" type="Control" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
+
+[node name="ButtonLoadQ" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Same as \"err\", but use queued loader to avoid error."
+text = "load Q"
+
+[node name="ButtonReloadQ" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Same as \"err\", but use queued loader to avoid error (disregards cache)."
+text = "reload Q"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LabelLog" type="Label" parent="VBoxContainer/ScrollContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 text = "logs will appear here..."
+clip_text = true
+text_overrun_behavior = 1

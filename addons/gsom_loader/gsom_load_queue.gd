@@ -1,7 +1,15 @@
-extends Node
+class_name GsomLoadQueue
+extends Timer
 
-## This is an autoload singleton, that becomes globally available when you enable the plugin.
-## It exposes the async loading API that you can call from scripts.
+## Sequential resource loader with queue.
+## The important part is not "ordering" but to avoid race-loading.
+## You can have many such queues running concurrently.
+## This approach may help fix certain concurrency-related loading errors.
+## "ERROR: Another resource is loaded from path ..." or even a CRASH.
+
+## Emitted when a resource starts loading.
+## Will not emit for cached resources, because they bypass the queue.
+signal started_load(path: String)
 
 ## Emitted when a resource has been loaded successfully.
 signal finished_load(path: String, res: Resource)
@@ -13,32 +21,18 @@ signal failed_load(path: String, status: ResourceLoader.ThreadLoadStatus)
 ## During loading the progress goes from [code]0.0[/code] to [code]1.0[/code].
 signal changed_progress(path: String, t: float, status: ResourceLoader.ThreadLoadStatus)
 
-## Status check interval. This is how often the loading progress is updated for each resource.
-@export_range(0.02, 1.0) var interval: float = 0.1:
+## Get the number of items that are in the queue right now.
+var count_pending: int:
 	get:
-		return _timer.wait_time
-	set(v):
-		_timer.wait_time = v
+		return _load_queue.size()
 
-
-var _timer: Timer = Timer.new()
-var _load_queue: Dictionary[String, bool] = {}
-
+var _load_queue: Array[Dictionary] = []
 
 func _ready() -> void:
-	_timer.wait_time = 0.1
-	_timer.one_shot = false
-	_timer.autostart = false
-	_timer.connect("timeout", _update_load_queue)
-	add_child(_timer)
-
-
-## Create a queued loader instance.
-## A queued loader also uses threads, but no concurrency within a single queue.
-func create_queue() -> GsomLoadQueue:
-	var instance: GsomLoadQueue = GsomLoadQueue.new()
-	add_child(instance)
-	return instance
+	wait_time = GsomLoader.interval
+	one_shot = false
+	autostart = false
+	connect("timeout", _update_load_queue)
 
 
 ## Loads a new resource outside of main thread. Emits [code]finished_load[/code] when complete.
@@ -61,7 +55,6 @@ func load_async(path: String) -> void:
 	
 	_load_internal(path, ResourceLoader.CACHE_MODE_REUSE)
 
-
 ## Similar to [code]load_async[/code] but disregards cache if the resource
 ## has already been cached by a previous load call.
 func reload_async(path: String) -> void:
@@ -70,28 +63,42 @@ func reload_async(path: String) -> void:
 
 
 func _load_internal(path: String, cache: ResourceLoader.CacheMode) -> void:
-	# Ignore if already in queue
-	if _load_queue.has(path):
+	_load_queue.append({ "path": path, "cache": cache })
+	
+	# If not currently loading, start immediately
+	if _load_queue.size() == 1:
+		_start_next_load()
+
+
+func _start_next_load() -> void:
+	if _load_queue.is_empty():
+		stop()
 		return
 	
-	if _timer.is_stopped():
-		_timer.start()
+	var first: Dictionary = _load_queue[0]
+	var path: String = first.path
+	var cache: ResourceLoader.CacheMode = first.cache
 	
 	var status: Error = ResourceLoader.load_threaded_request(path, "", false, cache)
 	
 	if status != OK:
 		failed_load.emit(path, ResourceLoader.THREAD_LOAD_FAILED)
+		_load_queue.pop_front()
+		_start_next_load()
 		return
 	
-	_load_queue[path] = true
+	started_load.emit(path)
+	if is_stopped():
+		start()
 
 
 func _update_load_queue() -> void:
-	for path: String in _load_queue:
-		_check_path_status(path)
-
-
-func _check_path_status(path: String) -> void:
+	if _load_queue.size() < 1:
+		return
+	
+	var first: Dictionary = _load_queue[0]
+	var path: String = first.path
+	
 	var progress: Array[float] = []
 	var status: ResourceLoader.ThreadLoadStatus = (
 		ResourceLoader.load_threaded_get_status(path, progress)
@@ -101,15 +108,17 @@ func _check_path_status(path: String) -> void:
 		changed_progress.emit(path, progress[0], status)
 		return
 	
-	_load_queue.erase(path)
+	_load_queue.pop_front()
 	if _load_queue.is_empty():
-		_timer.stop()
+		stop()
 	
 	if status == ResourceLoader.THREAD_LOAD_LOADED:
 		var res: Resource = ResourceLoader.load_threaded_get(path)
 		changed_progress.emit(path, 1.0, status)
 		finished_load.emit(path, res)
+		_start_next_load()
 		return
 	
 	# Any other status is fail
 	failed_load.emit(path, status)
+	_start_next_load()

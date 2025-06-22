@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://waf1w3w1rtc2"]
+
+[ext_resource type="PackedScene" uid="uid://suwbakrkfxel" path="res://population.tscn" id="1_qleuo"]
+
+[node name="Referrer2" type="Node"]
+
+[node name="Population" parent="." instance=ExtResource("1_qleuo")]

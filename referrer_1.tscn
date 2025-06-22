@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://o0thm8i5clxj"]
+
+[ext_resource type="PackedScene" uid="uid://suwbakrkfxel" path="res://population.tscn" id="1_7v015"]
+
+[node name="Referrer1" type="Node"]
+
+[node name="Population" parent="." instance=ExtResource("1_7v015")]
