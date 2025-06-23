@@ -23,7 +23,7 @@ signal failed_load(path: String, status: ResourceLoader.ThreadLoadStatus)
 ## During loading the progress goes from [code]0.0[/code] to [code]1.0[/code].
 signal changed_progress(path: String, t: float)
 
-## Status check interval. This is how often the loading progress is updated for each resource.
+## Status check interval. This is how often the loading progress is polled.
 @export_range(0.02, 1.0) var interval: float = 0.1:
 	get:
 		return _timer.wait_time
