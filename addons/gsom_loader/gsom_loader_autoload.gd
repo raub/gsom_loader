@@ -1,7 +1,16 @@
 extends Node
 
-## This is an autoload singleton, that becomes globally available when you enable the plugin.
-## It exposes the async loading API that you can call from scripts.
+## This is [b]an autoload singleton[/b], that becomes globally available when you enable the plugin.
+##
+## It is not tied to any specific UI, it doesn't care what kind of resources you load.
+## [br][br]
+## Importantly, this loader is concurrent, meaning all your requests are being processed
+## as soon as possible and in parallel. This [b]may[/b] lead to issues when you load two
+## or more resources, referencing a common dependency.
+## E.g. [color=red]"ERROR: Another resource is loaded from path ..."[/color], or even crash the game.
+## [br][br]
+## So it fits better for loading unrelated resources or a single large resource, like a level.
+## If you want to have more control, consider [GsomLoadQueue].
 
 ## Emitted when a resource has been loaded successfully.
 signal finished_load(path: String, res: Resource)
@@ -9,9 +18,10 @@ signal finished_load(path: String, res: Resource)
 ## Emitted if a resource is failed to load.
 signal failed_load(path: String, status: ResourceLoader.ThreadLoadStatus)
 
-## Emitted during load and immediately before [code]finished_load[/code].
+## Emitted during load to report loading progress.
+## Emitted with [code]0.0[/code] at start and [code]1.0[/code] immediately before done.
 ## During loading the progress goes from [code]0.0[/code] to [code]1.0[/code].
-signal changed_progress(path: String, t: float, status: ResourceLoader.ThreadLoadStatus)
+signal changed_progress(path: String, t: float)
 
 ## Status check interval. This is how often the loading progress is updated for each resource.
 @export_range(0.02, 1.0) var interval: float = 0.1:
@@ -55,7 +65,7 @@ func load_async(path: String) -> void:
 	
 	if status == ResourceLoader.THREAD_LOAD_LOADED:
 		var res: Resource = ResourceLoader.load_threaded_get(path)
-		changed_progress.emit(path, 1.0, ResourceLoader.THREAD_LOAD_LOADED)
+		changed_progress.emit(path, 1.0)
 		finished_load.emit(path, res)
 		return
 	
@@ -83,6 +93,7 @@ func _load_internal(path: String, cache: ResourceLoader.CacheMode) -> void:
 		failed_load.emit(path, ResourceLoader.THREAD_LOAD_FAILED)
 		return
 	
+	changed_progress.emit(path, 0.0)
 	_load_queue[path] = true
 
 
@@ -98,7 +109,7 @@ func _check_path_status(path: String) -> void:
 	)
 	
 	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-		changed_progress.emit(path, progress[0], status)
+		changed_progress.emit(path, progress[0])
 		return
 	
 	_load_queue.erase(path)
@@ -107,7 +118,7 @@ func _check_path_status(path: String) -> void:
 	
 	if status == ResourceLoader.THREAD_LOAD_LOADED:
 		var res: Resource = ResourceLoader.load_threaded_get(path)
-		changed_progress.emit(path, 1.0, status)
+		changed_progress.emit(path, 1.0)
 		finished_load.emit(path, res)
 		return
 	

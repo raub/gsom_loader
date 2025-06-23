@@ -1,15 +1,13 @@
 class_name GsomLoadQueue
 extends Timer
 
-## Sequential resource loader with queue.
-## The important part is not "ordering" but to avoid race-loading.
-## You can have many such queues running concurrently.
+## Sequential resource loader with a queue.
+##
 ## This approach may help fix certain concurrency-related loading errors.
-## "ERROR: Another resource is loaded from path ..." or even a CRASH.
-
-## Emitted when a resource starts loading.
-## Will not emit for cached resources, because they bypass the queue.
-signal started_load(path: String)
+## E.g. [color=red]"ERROR: Another resource is loaded from path ..."[/color].
+## [br][br]
+## The important part is not "ordering" but to avoid race-loading.
+## You can still have many such queues running concurrently, if desired.
 
 ## Emitted when a resource has been loaded successfully.
 signal finished_load(path: String, res: Resource)
@@ -19,7 +17,7 @@ signal failed_load(path: String, status: ResourceLoader.ThreadLoadStatus)
 
 ## Emitted during load and immediately before [code]finished_load[/code].
 ## During loading the progress goes from [code]0.0[/code] to [code]1.0[/code].
-signal changed_progress(path: String, t: float, status: ResourceLoader.ThreadLoadStatus)
+signal changed_progress(path: String, t: float)
 
 ## Get the number of items that are in the queue right now.
 var count_pending: int:
@@ -49,7 +47,7 @@ func load_async(path: String) -> void:
 	
 	if status == ResourceLoader.THREAD_LOAD_LOADED:
 		var res: Resource = ResourceLoader.load_threaded_get(path)
-		changed_progress.emit(path, 1.0, ResourceLoader.THREAD_LOAD_LOADED)
+		changed_progress.emit(path, 1.0)
 		finished_load.emit(path, res)
 		return
 	
@@ -87,7 +85,8 @@ func _start_next_load() -> void:
 		_start_next_load()
 		return
 	
-	started_load.emit(path)
+	changed_progress.emit(path, 0.0)
+	
 	if is_stopped():
 		start()
 
@@ -105,7 +104,7 @@ func _update_load_queue() -> void:
 	)
 	
 	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-		changed_progress.emit(path, progress[0], status)
+		changed_progress.emit(path, progress[0])
 		return
 	
 	_load_queue.pop_front()
@@ -114,7 +113,7 @@ func _update_load_queue() -> void:
 	
 	if status == ResourceLoader.THREAD_LOAD_LOADED:
 		var res: Resource = ResourceLoader.load_threaded_get(path)
-		changed_progress.emit(path, 1.0, status)
+		changed_progress.emit(path, 1.0)
 		finished_load.emit(path, res)
 		_start_next_load()
 		return

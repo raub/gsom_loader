@@ -18,7 +18,6 @@ func _ready() -> void:
 	GsomLoader.finished_load.connect(_handleResource)
 	GsomLoader.changed_progress.connect(_handleProgress)
 	
-	_queue.started_load.connect(_handleStart)
 	_queue.finished_load.connect(_handleResource)
 	_queue.changed_progress.connect(_handleProgress)
 	
@@ -68,15 +67,15 @@ func _reload_q() -> void:
 	_queue.reload_async("res://referrer_4.tscn")
 
 
-func _handleStart(path: String) -> void:
-	_label_log.text += "Q Started! (%s)\n" % path
-
 func _handleResource(path: String, res: Resource) -> void:
 	_strong_ref = res
 	_label_log.text += "Complete! (%s)\n" % path
 
 
-func _handleProgress(path: String, t: float, _status: ResourceLoader.ThreadLoadStatus) -> void:
+func _handleProgress(path: String, t: float) -> void:
+	if t == 0.0:
+		_label_log.text += "Q Started! (%s)\n" % path
+		return
 	_label_log.text += "Progress %s... (%s)\n" % [t, path]
 
 
