@@ -24,15 +24,15 @@ func _handleResource(path: String, res: Resource) -> void:
 	_strong_ref = res
 	print("Complete! (%s)" % path)
 
-func _handleProgress(path: String, progress: float, status: ResourceLoader.ThreadLoadStatus) -> void:
+func _handleProgress(path: String, progress: float) -> void:
 	print("Progress %s... (%s)" % [progress, path])
 
 func _handleFail(path: String, status: ResourceLoader.ThreadLoadStatus) -> void:
-    prints(
-        "status:",
-        "failed" if status == ResourceLoader.THREAD_LOAD_FAILED else "invalid",
-        "(%s)" % path,
-    )
+	prints(
+		"status:",
+		"failed" if status == ResourceLoader.THREAD_LOAD_FAILED else "invalid",
+		"(%s)" % path,
+	)
 ```
 
 ## GsomLoader
