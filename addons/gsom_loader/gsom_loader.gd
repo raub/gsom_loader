@@ -2,9 +2,9 @@
 extends EditorPlugin
 
 
-func _enter_tree() -> void:
+func _enable_plugin() -> void:
 	add_autoload_singleton("GsomLoader", "./gsom_loader_autoload.gd")
 
 
-func _exit_tree() -> void:
+func _disable_plugin() -> void:
 	remove_autoload_singleton("GsomLoader")
